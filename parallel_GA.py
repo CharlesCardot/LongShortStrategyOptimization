@@ -238,7 +238,7 @@ def fitness_function(ga_instance, solution, solution_idx):
     profit_fitness = 0
     max_drawdown_fitness = 0
     longest_drawdown_dur_fitness = 0
-    seeds = [int(i) for i in np.arange(0, 10, 1)]
+    seeds = [int(i) for i in np.arange(0, 30, 1)]
     for seed in seeds:
         report = my_algorithm(seed, day_num, starting_balance, x_percent_loss / 100, y_percent_gain / 100, be_threshold / 100, tslp / 100)
 
@@ -256,7 +256,7 @@ def fitness_function(ga_instance, solution, solution_idx):
     print(profit_fitness, max_drawdown_fitness, longest_drawdown_dur_fitness, 1 / (6 - total_fitness))
     return 1 / (6 - total_fitness)
 
-num_generations = 50
+num_generations = 20
 num_parents_mating = 8
 
 # Define the number of solutions and genes
@@ -265,10 +265,10 @@ num_genes = 4
 
 # Define initialization ranges for each gene
 gene_ranges = [
-    (-1, -0.01),  # x_percent_loss
-    (0.1, 10),      # y_percent_gain
-    (0.01, 1.5),  # be_threshold
-    (0.1, 5)   # tslp
+    (-1, -0.2),  # x_percent_loss
+    (0.2, 5),      # y_percent_gain
+    (0.2, 1.5),  # be_threshold
+    (0.2, 5)   # tslp
 ]
 
 # Initialize an empty population array
@@ -303,9 +303,6 @@ keep_parents = 0
 keep_elitism = 1
 
 mutation_probability = 0.4 # Every gene of every solution has a some percent chance of being mutated
-
-random_mutation_min_val = -2
-random_mutation_max_val = 2
 
 # Define your custom callback function
 def custom_callback(ga_instance):
@@ -342,6 +339,7 @@ def crossover_func(parents, offspring_size, ga_instance):
 def mutation_func(offspring, ga_instance):
 
     minmax_by_gene = [[-1,1] for i in range(offspring.shape[1])]
+    minmax_by_gene[0] = [-0.2, 0.2]
 
     for chromosome_idx in range(offspring.shape[0]):
         for gene_idx in range(offspring.shape[1]):
@@ -358,7 +356,8 @@ def mutation_func(offspring, ga_instance):
                     new_solution = offspring[chromosome_idx] + mutation_arr
                     if counter > 20: # Avoid infinite loop
                         print("Mutation got stuck in while loop with initial values of", offspring[chromosome_idx])
-                        new_solution = generate_solution()
+                        new_solution = offspring[chromosome_idx] # Don't mutate anything
+                        break
                     counter += 1
                 
                 offspring[chromosome_idx] = new_solution
@@ -378,10 +377,8 @@ ga_instance = pygad.GA(num_generations=num_generations,
                        on_generation=custom_callback,
                        allow_duplicate_genes=False,
                        save_solutions=True,
-                       random_mutation_min_val=random_mutation_min_val,
-                       random_mutation_max_val=random_mutation_max_val,
                        parallel_processing=["process", 16],
-                       stop_criteria=["reach_0.5"])
+                       stop_criteria=["reach_0.8"])
 
 if __name__ == '__main__':
     t1 = time.time()
